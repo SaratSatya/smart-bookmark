@@ -128,52 +128,88 @@ export default function BookmarksPage() {
   if (loading) return <div>Loading...</div>
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Your Bookmarks</h1>
-        <button onClick={logout} className="rounded border px-3 py-1">
-          Logout
-        </button>
+  <div className="space-y-6">
+    {/* Header */}
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">Your Bookmarks</h1>
+        <p className="text-sm text-slate-300">Private to you. Syncs in real-time.</p>
       </div>
 
-      <form onSubmit={addBookmark} className="space-y-3 rounded border bg-white p-4">
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Title"
-          className="w-full rounded border px-3 py-2"
-        />
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="URL (https://...)"
-          className="w-full rounded border px-3 py-2"
-        />
-        <button className="rounded bg-black px-4 py-2 text-white">Add</button>
-      </form>
+      <button
+        onClick={logout}
+        className="rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
+      >
+        Logout
+      </button>
+    </div>
 
-      <ul className="space-y-2">
-        {bookmarks.length === 0 ? (
-          <li className="text-gray-500">No bookmarks yet.</li>
-        ) : (
-          bookmarks.map((b) => (
-            <li key={b.id} className="flex items-center justify-between rounded border bg-white p-3">
+    {/* Add form card */}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg shadow-black/20 backdrop-blur">
+      <form onSubmit={addBookmark} className="grid gap-3 sm:grid-cols-5 sm:items-end">
+        <div className="sm:col-span-2">
+          <label className="mb-1 block text-xs font-medium text-slate-300">Title</label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Google"
+            className="w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-white/30"
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="mb-1 block text-xs font-medium text-slate-300">URL</label>
+          <input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://example.com"
+            className="w-full rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-white/30"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="sm:col-span-1 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow hover:bg-slate-100 active:scale-[0.99]"
+        >
+          Add
+        </button>
+      </form>
+    </div>
+
+    {/* List card */}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-2 shadow-lg shadow-black/20 backdrop-blur">
+      {bookmarks.length === 0 ? (
+        <div className="p-6 text-sm text-slate-300">
+          No bookmarks yet. Add one above.
+        </div>
+      ) : (
+        <ul className="divide-y divide-white/10">
+          {bookmarks.map((b) => (
+            <li key={b.id} className="flex items-center justify-between gap-4 p-4">
               <div className="min-w-0">
-                <div className="font-medium">{b.title}</div>
-                <a className="block truncate text-sm text-blue-600 underline" href={b.url} target="_blank" rel="noreferrer">
+                <div className="truncate text-sm font-semibold text-slate-100">{b.title}</div>
+                <a
+                  className="block truncate text-sm text-sky-300 hover:text-sky-200 hover:underline"
+                  href={b.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   {b.url}
                 </a>
               </div>
+
               <button
                 onClick={() => deleteBookmark(b.id)}
-                className="ml-3 rounded bg-red-600 px-3 py-1 text-white"
+                className="shrink-0 rounded-xl bg-red-500/15 px-3 py-1.5 text-sm font-medium text-red-200 ring-1 ring-inset ring-red-500/30 hover:bg-red-500/25"
               >
                 Delete
               </button>
             </li>
-          ))
-        )}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
-  )
+  </div>
+)
+
 }
