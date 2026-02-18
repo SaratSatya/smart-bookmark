@@ -1,36 +1,149 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# Smart Bookmark App
 
-First, run the development server:
+A simple bookmark manager built with **Next.js (App Router)**, **Supabase (Auth + Database + Realtime)**, and **Tailwind CSS**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
+- **Google OAuth only** (no email/password)
+- Add bookmarks (**title + URL**)
+- Bookmarks are **private per user** (RLS enforced)
+- **Realtime updates across tabs** (open two tabs → changes reflect without refresh)
+- Delete your own bookmarks
+- Deployed on **Vercel**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
+- **Next.js** (App Router)
+- **Supabase**
+  - Auth (Google OAuth)
+  - Postgres Database
+  - Realtime (postgres_changes)
+- **Tailwind CSS**
+- Deployment: **Vercel**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Local Setup
+1. Clone the repo
+2. Install dependencies
+   ```bash
+   npm install
+````
 
-To learn more about Next.js, take a look at the following resources:
+3. Create `.env.local` in the project root:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_PUBLIC_KEY=your_anon_public_key
+   ```
+4. Run locally:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
+> Note: In Vercel, add the same env values under **Project → Settings → Environment Variables**.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Supabase Setup Summary
+
+### Database + RLS
+
+* Created a `bookmarks` table with `user_id`, `title`, `url`, and timestamps
+* Enabled **Row Level Security (RLS)**
+* Added policies so users can:
+
+  * read only their bookmarks
+  * insert only with their own `user_id`
+  * delete only their own rows
+
+### Realtime
+
+* Enabled realtime for the `bookmarks` table
+* Subscribed to `postgres_changes` in the client, filtered by `user_id`
+
+---
+
+## Problems I Faced and How I Solved Them
+
+### 1) Switching from NextAuth + MongoDB to Supabase
+
+Initially, I implemented Google OAuth using **NextAuth** and stored bookmarks in **MongoDB**. Since the assignment required **Supabase (Auth + Database + Realtime)**, I rebuilt the project using Supabase.
+
+Because it was my first time using Supabase, the dashboard and configuration took some time to get used to. I resolved this by:
+
+* locating the **Supabase Project URL** and **anon public key** and wiring them into `.env.local` and Vercel environment variables
+* setting up the `bookmarks` table and enabling **Row Level Security (RLS)**
+* enabling **Realtime** for the table so inserts/deletes reflect across tabs
+
+### 2) Google OAuth consent / credentials issue
+
+I initially created the **Google Client ID and Client Secret** inside an existing Google Cloud project. During testing, Google sometimes did not show the consent screen on the first login, which created confusion and inconsistent behavior.
+
+To fix this, I deleted those credentials and created a new OAuth Client in a **fresh Google Cloud project**, after which the login flow worked consistently.
+
+### 3) OAuth redirect URL misconfiguration (Vercel)
+
+Login initially failed because the **Supabase Auth Site URL / Redirect URLs** were not configured correctly (for example, missing `https://` or not allowing the Vercel callback URL).
+
+Fix:
+
+* Set **Site URL** to:
+
+  * `https://<vercel-domain>`
+* Added Redirect URL:
+
+  * `https://<vercel-domain>/auth/callback`
+
+### 4) Confusing “Replication” vs “Realtime”
+
+At first, I looked at Supabase’s **Database → Replication** page, which is meant for external replication/read replicas and not realtime web subscriptions.
+
+Fix:
+
+* Enabled realtime through **Database → Publications** (adding the table to the realtime publication), then verified realtime events via `postgres_changes`.
+
+### 5) Realtime deletes not reflecting without refresh
+
+INSERT/UPDATE reflected across tabs, but DELETE only appeared after refreshing.
+
+Fix:
+
+* Set replica identity to ensure delete payloads contain enough row information for filtered subscriptions:
+
+  ```sql
+  ALTER TABLE public.bookmarks REPLICA IDENTITY FULL;
+  ```
+* Ensured the client handled `payload.old.id` for DELETE events.
+
+### 6) Local worked but Vercel behaved differently due to session timing
+
+Realtime can fail in production if the subscription starts before the user/session is fully available, which can cause an invalid filter like `user_id=eq.undefined`.
+
+Fix:
+
+* Only subscribed to realtime after `getUser()` returned a valid `user.id`.
+
+---
+
+## Deployment Notes (Vercel)
+
+* Added these environment variables in Vercel Project Settings:
+
+  * `NEXT_PUBLIC_SUPABASE_URL`
+  * `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+* Ensured Supabase Auth configuration includes the Vercel callback URL:
+
+  * `https://<vercel-domain>/auth/callback`
+
+---
+
+## How to Test
+
+1. Open the deployed app and log in with Google
+2. Open the app in a second tab (same user)
+3. Add a bookmark in Tab A → it should appear instantly in Tab B
+4. Delete a bookmark in Tab B → it should disappear instantly in Tab A
+
