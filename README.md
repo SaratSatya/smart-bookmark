@@ -3,9 +3,8 @@
 
 A simple bookmark manager built with **Next.js (App Router)**, **Supabase (Auth + Database + Realtime)**, and **Tailwind CSS**.
 
-## Live Demo & Repo
-- **Live URL:** `<your-vercel-url>`
-- **GitHub Repo:** `<your-github-url>`
+## Live Demo 
+- **Live URL:** `https://smart-bookmark-lac.vercel.app/`
 
 ---
 
