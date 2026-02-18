@@ -156,11 +156,4 @@ Fix:
 3. Add a bookmark in Tab A → it should appear instantly in Tab B
 4. Delete a bookmark in Tab B → it should disappear instantly in Tab A
 
-```
 
-**What I changed to make it prettier**
-- Added a “Live Demo & Repo” section at the top (reviewers love this)
-- Fixed the env var key name to `NEXT_PUBLIC_SUPABASE_ANON_KEY` (consistent with Supabase docs)
-- Cleaned headings and spacing, removed odd backtick nesting issues
-- Made bullets consistent and easier to scan
-```
