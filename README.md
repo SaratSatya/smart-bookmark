@@ -1,13 +1,19 @@
-
+````md
 # Smart Bookmark App
 
 A simple bookmark manager built with **Next.js (App Router)**, **Supabase (Auth + Database + Realtime)**, and **Tailwind CSS**.
 
+## Live Demo & Repo
+- **Live URL:** `<your-vercel-url>`
+- **GitHub Repo:** `<your-github-url>`
+
+---
+
 ## Features
 - **Google OAuth only** (no email/password)
 - Add bookmarks (**title + URL**)
-- Bookmarks are **private per user** (RLS enforced)
-- **Realtime updates across tabs** (open two tabs → changes reflect without refresh)
+- Bookmarks are **private per user** (enforced via RLS)
+- **Realtime sync across tabs** (open two tabs → changes appear without refresh)
 - Delete your own bookmarks
 - Deployed on **Vercel**
 
@@ -18,32 +24,35 @@ A simple bookmark manager built with **Next.js (App Router)**, **Supabase (Auth 
 - **Supabase**
   - Auth (Google OAuth)
   - Postgres Database
-  - Realtime (postgres_changes)
+  - Realtime (`postgres_changes`)
 - **Tailwind CSS**
 - Deployment: **Vercel**
 
 ---
 
 ## Local Setup
-1. Clone the repo
-2. Install dependencies
-   ```bash
-   npm install
+
+### 1) Install dependencies
+```bash
+npm install
 ````
 
-3. Create `.env.local` in the project root:
+### 2) Create `.env.local`
 
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_PUBLIC_KEY=your_anon_public_key
-   ```
-4. Run locally:
+Create a `.env.local` file in the project root:
 
-   ```bash
-   npm run dev
-   ```
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_public_key
+```
 
-> Note: In Vercel, add the same env values under **Project → Settings → Environment Variables**.
+### 3) Run the app
+
+```bash
+npm run dev
+```
+
+> Note: In Vercel, add the same environment variables under **Project → Settings → Environment Variables** and redeploy.
 
 ---
 
@@ -55,8 +64,8 @@ A simple bookmark manager built with **Next.js (App Router)**, **Supabase (Auth 
 * Enabled **Row Level Security (RLS)**
 * Added policies so users can:
 
-  * read only their bookmarks
-  * insert only with their own `user_id`
+  * read only their own bookmarks
+  * insert only rows with their own `user_id`
   * delete only their own rows
 
 ### Realtime
@@ -74,11 +83,11 @@ Initially, I implemented Google OAuth using **NextAuth** and stored bookmarks in
 
 Because it was my first time using Supabase, the dashboard and configuration took some time to get used to. I resolved this by:
 
-* locating the **Supabase Project URL** and **anon public key** and wiring them into `.env.local` and Vercel environment variables
-* setting up the `bookmarks` table and enabling **Row Level Security (RLS)**
-* enabling **Realtime** for the table so inserts/deletes reflect across tabs
+* finding the **Supabase Project URL** and **anon public key** and wiring them into `.env.local` and Vercel environment variables
+* setting up the `bookmarks` table and enabling **RLS**
+* enabling **Realtime** so inserts/deletes reflect across tabs
 
-### 2) Google OAuth consent / credentials issue
+### 2) Google OAuth consent / credential issue
 
 I initially created the **Google Client ID and Client Secret** inside an existing Google Cloud project. During testing, Google sometimes did not show the consent screen on the first login, which created confusion and inconsistent behavior.
 
@@ -113,9 +122,10 @@ Fix:
 
 * Set replica identity to ensure delete payloads contain enough row information for filtered subscriptions:
 
-  ```sql
-  ALTER TABLE public.bookmarks REPLICA IDENTITY FULL;
-  ```
+```sql
+ALTER TABLE public.bookmarks REPLICA IDENTITY FULL;
+```
+
 * Ensured the client handled `payload.old.id` for DELETE events.
 
 ### 6) Local worked but Vercel behaved differently due to session timing
@@ -147,3 +157,11 @@ Fix:
 3. Add a bookmark in Tab A → it should appear instantly in Tab B
 4. Delete a bookmark in Tab B → it should disappear instantly in Tab A
 
+```
+
+**What I changed to make it prettier**
+- Added a “Live Demo & Repo” section at the top (reviewers love this)
+- Fixed the env var key name to `NEXT_PUBLIC_SUPABASE_ANON_KEY` (consistent with Supabase docs)
+- Cleaned headings and spacing, removed odd backtick nesting issues
+- Made bullets consistent and easier to scan
+```
